@@ -8,9 +8,8 @@ const NodeHttpTransport = require("@improbable-eng/grpc-web-node-http-transport"
 // set grpc to use Node
 grpc.setDefaultTransport(NodeHttpTransport());
 
-
-const GenerationService = require('./generation_pb_service')
-const Generation = require('./generation_pb')
+const GenerationService = require('./generation/generation_pb_service')
+const Generation = require('./generation/generation_pb')
 
 const API_KEY = process.env.API_KEY
 
@@ -66,7 +65,7 @@ metadata.set("Authorization", "Bearer " + API_KEY);
 
 // Create a generation client
 const generationClient = new GenerationService.GenerationServiceClient(
-  'https://grpc.stability.ai/',
+  'https://grpc.stability.ai',
   {}
 );
 
@@ -76,11 +75,6 @@ const generation = generationClient.generate(request, metadata);
 // Set up a callback to handle data being returned
 generation.on("data", (data) => {
   data.getArtifactsList().forEach((artifact) => {
-
-
-    console.log({artifact})
-
-
     // Oh no! We were filtered by the NSFW classifier!
     if (
       artifact.getType() === Generation.ArtifactType.ARTIFACT_TEXT &&
@@ -92,25 +86,11 @@ generation.on("data", (data) => {
     // Make sure we have an image
     if (artifact.getType() !== Generation.ArtifactType.ARTIFACT_IMAGE) return;
 
-    const result = fs.writeFileSync('test.png',data)
+    // Write the image binary to file
+    fs.writeFileSync('./test.png', artifact.getBinary())
 
-
-    // // You can convert the raw binary into a base64 string
-    // const base64Image = btoa(
-    //   new Uint8Array(artifact.getBinary()).reduce(
-    //     (data, byte) => data + String.fromCodePoint(byte),
-    //     ""
-    //   )
-    // );
-
-    // // Here's how you get the seed back if you set it to `0` (random)
-    // const seed = artifact.getSeed();
-
-    // // We're done!
-    // someFunctionToCallWhenFinished({ seed, base64Image });
-
-
-
+    // If you want the Base64 encoded image, you can use this
+    const imageBase64 = artifact.getBinary_asB64()
   });
 });
 
