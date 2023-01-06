@@ -12,7 +12,7 @@ Example repo to debug using Dream Studio API
 
 ## To run
 
-`API_KEY=A_DREAM_STUDIO_API_KEY node index.js
+`API_KEY=A_DREAM_STUDIO_API_KEY node index.js`
 
 ## Current output
 
